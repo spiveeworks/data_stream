@@ -22,12 +22,12 @@ impl<T,C> StreamContainer<T> for C
 }
 
 
-impl StreamContainer<u8> for [u8; 5]
+impl StreamContainer<u8> for [u8; 8]
 {
     type Iter = std::vec::IntoIter<u8>;
     fn fill_with<I: Iterator<Item = u8>> (stream: &mut I) -> Option<Self>
     {
-        let out = [0; 5];
+        let mut out = [0; 8];
         for x in &mut out
         {
             if let Some(thing) = stream.next()
@@ -54,11 +54,17 @@ trait StreamCast<T>
 
 struct Test(u8, u32);
 
+
 impl StreamCast<u8> for Test
 {
-    type Base = [u8; 5];
+    type Base = [u8; 8];
     fn into_base(self) -> Self::Base
-      {unsafe{std::mem::transmute::<Self,Self::Base>(self)}}
+    {
+        unsafe
+        {
+            std::mem::transmute::<Self,Self::Base>(self)
+        }
+    }
     fn from_base(base: Self::Base) -> Self
       {unsafe{std::mem::transmute::<Self::Base,Self>(base)}}
 }
@@ -95,5 +101,8 @@ fn main()
     {
         println!("byte: {}", i);
     }
+    let y = Test(100,999999);
+    let y = <Test as StreamContainer<u8>>::fill_with(&mut y.into_stream()).unwrap();
+    println!("thing: Test({}u8, {}u32)", y.0, y.1);
 }
 
