@@ -1,10 +1,12 @@
 #![allow(dead_code)]
 
+use std::marker;
+
 trait StreamContainer<T>
 {
     type Iter: Iterator<Item = T>;
     fn fill_with<I: Iterator<Item = T>> (stream: &mut I) -> Option<Self>
-        where Self: std::marker::Sized;
+        where Self: marker::Sized;
     fn into_stream (self) -> Self::Iter;
 }
 
