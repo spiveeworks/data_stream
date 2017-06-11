@@ -28,23 +28,6 @@ trait StreamCast<T>
     fn from_base(Self::Base) -> Self;
 }
 
-struct Test(u8, u32);
-
-
-impl StreamCast<u8> for Test
-{
-    type Base = [u8; 8];
-    fn into_base(self) -> Self::Base
-    {
-        unsafe
-        {
-            std::mem::transmute::<Self,Self::Base>(self)
-        }
-    }
-    fn from_base(base: Self::Base) -> Self
-      {unsafe{std::mem::transmute::<Self::Base,Self>(base)}}
-}
-
 
 
 /*
@@ -69,16 +52,4 @@ impl<C,T> StreamCast<T> for C
       {unsafe{std::mem::transmute::<Self::Base,Self>(base)}}
 }
 */
-
-fn main() 
-{
-    let x = Test(5,1000000);
-    for i in x.into_stream()
-    {
-        println!("byte: {}", i);
-    }
-    let y = Test(100,999999);
-    let y = <Test as StreamContainer<u8>>::fill_with(&mut y.into_stream()).unwrap();
-    println!("thing: Test({}u8, {}u32)", y.0, y.1);
-}
 
