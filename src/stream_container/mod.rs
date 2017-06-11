@@ -1,6 +1,10 @@
 #![allow(dead_code)]
 
+mod tests;
+mod impls;
+
 use std::marker;
+
 
 trait StreamContainer<T>
 {
