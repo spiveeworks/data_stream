@@ -11,17 +11,6 @@ fn box_into_vec<T> (mut slice: Box<[T]>) -> Vec<T>
     result
 }
 
-macro_rules! try_option 
-{
-    {$x:expr} => 
-    {
-        match $x
-        {
-            Some(x) => x,
-            None => return None,
-        }
-    };
-}
 
 macro_rules! dummy 
 {
