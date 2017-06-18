@@ -1,7 +1,11 @@
 #![allow(dead_code)]
 
 
-mod impls;
+mod impls
+{
+    mod array;
+    mod tuple;
+}
 
 use std::marker;
 
