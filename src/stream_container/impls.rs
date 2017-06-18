@@ -1,6 +1,15 @@
 use stream_container::{StreamContainer};
 
 use std::vec;
+use std::mem;
+
+fn box_into_vec<T> (mut slice: Box<[T]>) -> Vec<T>
+{
+    let len = slice.len();
+    let result = unsafe { Vec::from_raw_parts(slice.as_mut_ptr(), len, len) };
+    mem::forget(slice);
+    result
+}
 
 macro_rules! try_option 
 {
@@ -38,7 +47,7 @@ macro_rules! array_impl_stream_container
                      $($ns),+])
             }
             fn into_stream(self) -> Self::Iter
-              {self.to_vec().into_iter()}
+              {box_into_vec(Box::new(self)).into_iter()}
         }
 
         array_impl_stream_container!{$($ns),+}
@@ -48,10 +57,10 @@ macro_rules! array_impl_stream_container
         impl<T> StreamContainer<T> for [T; $n]
         {
             type Iter = vec::IntoIter<T>;
-            fn fill_with<I: Iterator<Item = T>> (stream: &mut I) -> Option<Self>
+            fn fill_with<I: Iterator<Item = T>> (_stream: &mut I) -> Option<Self>
               {Some([])}
             fn into_stream(self) -> Self::Iter
-              {self.to_vec().into_iter()}
+              {Vec::new().into_iter()}
         }
     };
 }
