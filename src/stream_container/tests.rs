@@ -11,16 +11,27 @@ struct Test(u8, u32);
 
 impl StreamCast<u8> for Test
 {
-    type Base = [u8; 8];
+    type Base = ([u8;1], [u8; 4]);
     fn into_base(self) -> Self::Base
     {
-        unsafe
+        let Test(x, y) = self;
+        let xs = [x];
+        let ys = unsafe
         {
-            mem::transmute::<Self,Self::Base>(self)
-        }
+            mem::transmute::<u32,[u8; 4]>(y)
+        };
+        (xs,ys)
     }
     fn from_base(base: Self::Base) -> Self
-      {unsafe{mem::transmute::<Self::Base,Self>(base)}}
+    {
+        let (xs, ys) = base;
+        let x = xs[0];
+        let y = unsafe
+        {
+            mem::transmute::<[u8;4],u32>(ys)
+        };
+        Test(x, y)
+    }
 }
 
 container_by_cast!{Test}
