@@ -26,4 +26,12 @@ impl<T, A, B> StreamContainer<T> for (A, B)
     }
 }
 
+impl<T> StreamContainer<T> for ()
+{
+    type Iter = iter::Empty<T>;
+    fn fill_with<I> (_stream: &mut I) -> Option<Self>
+      { Some(()) }
+    fn into_stream(self) -> Self::Iter
+      { iter::empty() }
+}
 
