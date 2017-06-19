@@ -1,3 +1,7 @@
+use std::iter;
+
+use stream_container::{StreamContainer};
+
 
 macro_rules! tuple_iter_t
 {
@@ -20,13 +24,12 @@ macro_rules! tuple_impl_stream_container
             impl<T, $($T:StreamContainer<T>),+> StreamContainer<T> for ($($T,)+)
             {
                 type Iter = tuple_iter_t!(iter::Empty; $($T),+);
-                fn fill_with<I> (iter: &mut I) -> Self
-                    where I: Iterator,
-                          <I as Iterator>::Item == T
+                fn fill_with<I> (iter: &mut I) -> Option<Self>
+                    where I: Iterator<Item=T>,
                 {
-                    ($(
+                    Some(($(
                         try_option!(<$T as StreamContainer<T>>::fill_with(iter))
-                    ),+)
+                    ),+))
                 }
                 fn into_stream (self) -> Self::Iter
                 {
