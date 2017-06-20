@@ -1,25 +1,6 @@
 #![allow(dead_code)]
 
 
-mod impls
-{
-    
-    macro_rules! try_option 
-    {
-        {$x:expr} => 
-        {
-            match $x
-            {
-                Some(x) => x,
-                None => return None,
-            }
-        };
-    }
-    #[macro_use]
-    mod array;
-    #[macro_use]
-    mod tuple;
-}
 
 use std::marker;
 
@@ -42,7 +23,7 @@ trait StreamCast<T>
 
 macro_rules! container_by_cast
 {
-    {$C: ty} =>
+    ($C: ty) =>
     {
         impl<T> StreamContainer<T> for $C
             where $C: StreamCast<T>
@@ -59,6 +40,25 @@ macro_rules! container_by_cast
     }
 }
 
+mod impls
+{
+    
+    macro_rules! try_option 
+    {
+        {$x:expr} => 
+        {
+            match $x
+            {
+                Some(x) => x,
+                None => return None,
+            }
+        };
+    }
+    #[macro_use]
+    mod array;
+    #[macro_use]
+    mod tuple;
+}
 
 #[macro_use]
 mod tests;

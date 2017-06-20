@@ -34,7 +34,7 @@ impl StreamCast<u8> for Test
     }
 }
 
-container_by_cast!{Test}
+container_by_cast!(Test);
 
 #[test]
 fn struct_streaming() 
@@ -50,4 +50,6 @@ fn struct_streaming()
 
     assert_eq!(a, b);
 }
+
+
 
