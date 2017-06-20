@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-mod tests;
+
 mod impls;
 
 use std::marker;
@@ -14,18 +14,6 @@ trait StreamContainer<T>
     fn into_stream (self) -> Self::Iter;
 }
 
-impl<T,C> StreamContainer<T> for C
-    where C: StreamCast<T>
-{
-    type Iter = <<C as StreamCast<T>>::Base as StreamContainer<T>>::Iter;
-    fn fill_with<I: Iterator<Item = T>> (stream: &mut I) -> Option<Self>
-    {
-        let container = C::Base::fill_with(stream);
-        container.map(|base| C::from_base(base))
-    }
-    fn into_stream (self) -> Self::Iter
-      {self.into_base().into_stream()}
-}
 
 trait StreamCast<T>
 {
@@ -33,6 +21,29 @@ trait StreamCast<T>
     fn into_base(self) -> Self::Base;
     fn from_base(Self::Base) -> Self;
 }
+
+macro_rules! container_by_cast
+{
+    {$C: ty} =>
+    {
+        impl<T> StreamContainer<T> for $C
+            where $C: StreamCast<T>
+        {
+            type Iter = <<Self as StreamCast<T>>::Base as StreamContainer<T>>::Iter;
+            fn fill_with<I: Iterator<Item = T>> (stream: &mut I) -> Option<Self>
+            {
+                let container = <Self as StreamCast<T>>::Base::fill_with(stream);
+                container.map(|base| Self::from_base(base))
+            }
+            fn into_stream (self) -> Self::Iter
+                {self.into_base().into_stream()}
+        }
+    }
+}
+
+
+#[macro_use]
+mod tests;
 
 
 
@@ -58,4 +69,7 @@ impl<C,T> StreamCast<T> for C
       {unsafe{std::mem::transmute::<Self::Base,Self>(base)}}
 }
 */
+
+
+
 

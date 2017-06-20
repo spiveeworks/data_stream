@@ -1,28 +1,74 @@
 use stream_container::{StreamContainer};
 
 use std::vec;
+use std::mem;
 
-impl StreamContainer<u8> for [u8; 8]
+fn box_into_vec<T> (mut slice: Box<[T]>) -> Vec<T>
 {
-    type Iter = vec::IntoIter<u8>;
-    fn fill_with<I: Iterator<Item = u8>> (stream: &mut I) -> Option<Self>
-    {
-        let mut out = [0; 8];
-        for x in &mut out
-        {
-            if let Some(thing) = stream.next()
-            {
-                *x = thing;
-            }
-            else
-            {
-                return None;
-            }
-        }
-        Some(out)
-    }
-    fn into_stream(self) -> Self::Iter
-      {self.to_vec().into_iter()}
+    let len = slice.len();
+    let result = unsafe { Vec::from_raw_parts(slice.as_mut_ptr(), len, len) };
+    mem::forget(slice);
+    result
 }
 
+macro_rules! try_option 
+{
+    {$x:expr} => 
+    {
+        match $x
+        {
+            Some(x) => x,
+            None => return None,
+        }
+    };
+}
 
+macro_rules! dummy 
+{
+    ($x:expr) => ();
+}
+
+macro_rules! expr_arr
+{
+    [$x: expr; $($ns:tt),*] => {[$({dummy!($ns); $x}),*]};
+}
+
+macro_rules! array_impl_stream_container 
+{
+    {$n:expr, $($ns:expr),+} => 
+    {
+        impl<T> StreamContainer<T> for [T; $n]
+        {
+            type Iter = vec::IntoIter<T>;
+            fn fill_with<I: Iterator<Item = T>> (stream: &mut I) -> Option<Self>
+            {
+                Some(expr_arr![
+                     try_option!(stream.next()); 
+                     $($ns),+])
+            }
+            fn into_stream(self) -> Self::Iter
+              {box_into_vec(Box::new(self)).into_iter()}
+        }
+
+        array_impl_stream_container!{$($ns),+}
+    };
+
+    {$n:expr} => {
+        impl<T> StreamContainer<T> for [T; $n]
+        {
+            type Iter = vec::IntoIter<T>;
+            fn fill_with<I: Iterator<Item = T>> (_stream: &mut I) -> Option<Self>
+              {Some([])}
+            fn into_stream(self) -> Self::Iter
+              {Vec::new().into_iter()}
+        }
+    };
+}
+
+array_impl_stream_container!
+{
+                                32, 31, 30,
+    29, 28, 27, 26, 25, 24, 23, 22, 21, 20,
+    19, 18, 17, 16, 15, 14, 13, 12, 11, 10,
+     9,  8,  7,  6,  5,  4,  3,  2,  1,  0
+}

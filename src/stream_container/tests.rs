@@ -23,6 +23,7 @@ impl StreamCast<u8> for Test
       {unsafe{mem::transmute::<Self::Base,Self>(base)}}
 }
 
+container_by_cast!{Test}
 
 #[test]
 fn struct_streaming() 
