@@ -11,21 +11,19 @@ struct Test(u8, u32);
 
 impl StreamCast<u8> for Test
 {
-    type Base = ([u8;1], [u8; 4]);
+    type Base = (u8, [u8; 4]);
     fn into_base(self) -> Self::Base
     {
         let Test(x, y) = self;
-        let xs = [x];
         let ys = unsafe
         {
             mem::transmute::<u32,[u8; 4]>(y)
         };
-        (xs,ys)
+        (x,ys)
     }
     fn from_base(base: Self::Base) -> Self
     {
-        let (xs, ys) = base;
-        let x = xs[0];
+        let (x, ys) = base;
         let y = unsafe
         {
             mem::transmute::<[u8;4],u32>(ys)
@@ -51,5 +49,21 @@ fn struct_streaming()
     assert_eq!(a, b);
 }
 
+#[test]
+fn tuple_streaming()
+{
+    const TERMS: [u8; 5] = [5,6,7,9,2];
 
+    let arr = TERMS;
+    let arr_as_stream = arr.into_stream();
+    let maybe_arr_as_tup = StreamContainer::<u8>::fill_with(arr_as_stream);
+    let arr_as_tup = maybe_arr_as_tup.expect("Ran out of bytes when constructing tuple");
+    assert_eq!(arr_as_tup, (TEST[0], TEST[1], TEST[2], TEST[3], TEST[4]));
+
+    let tup = arr_as_tup;
+    let tup_as_stream = tup.into_stream();
+    let maybe_tup_as_arr = StreamContainer::<u8>::fill_with(tup_as_stream);
+    let tup_as_arr = maybe_tup_as_arr.expect("Ran out of bytes when constructing array");
+    assert_eq!(tup_as_arr, TERMS);
+}
 
