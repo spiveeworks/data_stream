@@ -26,6 +26,7 @@ impl<T, A, B> StreamContainer<T> for (A, B)
     }
 }
 
+/*
 impl<T> StreamContainer<T> for ()
 {
     type Iter = iter::Empty<T>;
@@ -34,8 +35,10 @@ impl<T> StreamContainer<T> for ()
     fn into_stream(self) -> Self::Iter
       { iter::empty() }
 }
+*/
 
-impl<T> StreamCast for (T,)
+impl<T> StreamCast<T> for (T,)
+    where T: StreamContainer<T> // implemented by default elsewhere
 {
     type Base = T;
     fn into_base(self) -> T
@@ -52,7 +55,10 @@ macro_rules! tuple_impl_stream_container
         $($Ns: ident : $Ts: ident),+
     } =>
     {
-        impl<$T1, $T2, $($Ts),+> StreamCast for ($T1, $T2, $($Ts),+)
+        impl<T, $T1, $T2, $($Ts),+> StreamCast<T> for ($T1, $T2, $($Ts),+)
+            where $T1: StreamContainer<T>,
+                  $T2: StreamContainer<T>,
+                  $($Ts: StreamContainer<T>),+
         {
             type Base = (($T1, $T2), $($Ts),+);
             fn from_base(base: Self::Base) -> Self
@@ -68,9 +74,7 @@ macro_rules! tuple_impl_stream_container
         }
 
         impl<T, $T1, $T2, $($Ts),+> StreamContainer<T> for ($T1, $T2, $($Ts),+)
-            where $T1: StreamContainer<T>,
-                  $T2: StreamContainer<T>,
-                  $($Ts: StreamContainer<T>),+
+            where Self: StreamCast<T> // offload the actual requirements to StreamCast
         {
             // use the internal macro since we need to use different template args + restrictions
             container_by_cast_items!(Self, T);

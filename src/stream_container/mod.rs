@@ -31,8 +31,8 @@ macro_rules! container_by_cast_items
             let container = <$Self as StreamCast<$T>>::Base::fill_with(stream);
             container.map(|base| Self::from_base(base))
         }
-        fn into_stream (self) -> $Self::Iter
-            {self.into_base().into_stream()}
+        fn into_stream (self) -> <$Self as StreamContainer<$T>>::Iter
+          { self.into_base().into_stream() }
     }
 }
 
@@ -67,6 +67,9 @@ mod impls
     mod array;
     #[macro_use]
     mod tuple;
+
+    // implements StreamContainer<T> for T
+    mod single;
 }
 
 #[macro_use]
