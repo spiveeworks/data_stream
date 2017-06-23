@@ -21,6 +21,21 @@ trait StreamCast<T>
     fn from_base(Self::Base) -> Self;
 }
 
+macro_rules! container_by_cast_items
+{
+    ($Self: ty, $T: ty) =>
+    {
+        type Iter = <<$Self as StreamCast<$T>>::Base as StreamContainer<$T>>::Iter;
+        fn fill_with<I: Iterator<Item = $T>> (stream: &mut I) -> Option<$Self>
+        {
+            let container = <$Self as StreamCast<$T>>::Base::fill_with(stream);
+            container.map(|base| Self::from_base(base))
+        }
+        fn into_stream (self) -> $Self::Iter
+            {self.into_base().into_stream()}
+    }
+}
+
 macro_rules! container_by_cast
 {
     ($C: ty) =>
@@ -28,18 +43,12 @@ macro_rules! container_by_cast
         impl<T> StreamContainer<T> for $C
             where $C: StreamCast<T>
         {
-            type Iter = <<Self as StreamCast<T>>::Base as StreamContainer<T>>::Iter;
-            fn fill_with<I: Iterator<Item = T>> (stream: &mut I) -> Option<Self>
-            {
-                let container = <Self as StreamCast<T>>::Base::fill_with(stream);
-                container.map(|base| Self::from_base(base))
-            }
-            fn into_stream (self) -> Self::Iter
-                {self.into_base().into_stream()}
+            container_by_cast_items!(Self, T);
         }
     }
 }
 
+#[macro_use]
 mod impls
 {
     

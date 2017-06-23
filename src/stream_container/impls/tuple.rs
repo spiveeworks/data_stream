@@ -1,4 +1,4 @@
-use stream_container::{StreamContainer};
+use stream_container::{StreamContainer, StreamCast};
 
 use std::iter;
 
@@ -67,9 +67,16 @@ macro_rules! tuple_impl_stream_container
             }
         }
 
-        container_by_cast!(($T1, $T2, $($Ts),+));
+        impl<T, $T1, $T2, $($Ts),+> StreamContainer<T> for ($T1, $T2, $($Ts),+)
+            where $T1: StreamContainer<T>,
+                  $T2: StreamContainer<T>,
+                  $($Ts: StreamContainer<T>),+
+        {
+            // use the internal macro since we need to use different template args + restrictions
+            container_by_cast_items!(Self, T);
+        }
 
-        tuple_imple_stream_container!
+        tuple_impl_stream_container!
         {
             $N2: $T2,
             $($Ns: $Ts),+
@@ -77,8 +84,8 @@ macro_rules! tuple_impl_stream_container
     };
 
     {
-        $N1: ident : $T1: ident;
-        $N2: ident : $T2: ident;
+        $N1: ident : $T1: ident,
+        $N2: ident : $T2: ident
     } => 
     {
         // pair has its own implementation
@@ -90,7 +97,7 @@ tuple_impl_stream_container!
 {
     a: A,
     b: B,
-    c: C,
+    c: C
 }
 
 

@@ -58,7 +58,7 @@ fn tuple_streaming()
     let arr_as_stream = arr.into_stream();
     let maybe_arr_as_tup = StreamContainer::<u8>::fill_with(arr_as_stream);
     let arr_as_tup = maybe_arr_as_tup.expect("Ran out of bytes when constructing tuple");
-    assert_eq!(arr_as_tup, (TEST[0], TEST[1], TEST[2], TEST[3], TEST[4]));
+    assert_eq!(arr_as_tup, (TERMS[0], TERMS[1], TERMS[2], TERMS[3], TERMS[4]));
 
     let tup = arr_as_tup;
     let tup_as_stream = tup.into_stream();
